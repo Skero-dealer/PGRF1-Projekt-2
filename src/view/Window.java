@@ -21,7 +21,7 @@ public class Window extends JFrame {
 
     public Window(int width, int height) {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setTitle("FIM UHK | PGRF1 | 2026 | [name]");
+        setTitle("FIM UHK | PGRF1 | 2026 | V.Šafránek");
         setLayout(new BorderLayout());
         setResizable(false);
 

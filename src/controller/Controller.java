@@ -65,6 +65,7 @@ public class Controller {
     private int patternFillMode = 1; // 1 = Plná barva; 2 = Horizontální čáry
     private final PatternFill[] patternFillers;
     private final SeedFiller seedFiller;
+    private final SeedFiller patternSeedFiller;
     private final ScanlineFiller scanlineFiller;
 
     private static final int LINE_COLOR = Color.WHITE.getRGB();
@@ -73,10 +74,8 @@ public class Controller {
     private static final int CLIPPED_COLOR = new Color(0xA4F2DF).getRGB();
     private static final int CLIPPING_TRIANGLE_COLOR = new Color(0xE6B85C).getRGB();
     private static final int FILL_COLOR = new Color(0x58BFA9).getRGB();
-    private static final int PATTERNFILL_COLOR = new Color(0x0008f5).getRGB();
 
     // Tento tvar se mi zjevil ve snu (Ne, ale bylo by to vtipné)
-    /*
     private static final List<Point> HODGMAN_CLIPPING_TRIANGLE_VERTICES = List.of(
             new Point(250, 200),
             new Point(375, 100),
@@ -85,13 +84,14 @@ public class Controller {
             new Point(500, 400),
             new Point(375, 500),
             new Point(250, 400)
-    );*/
+    );/*
+    // Tady tento polygon tu je pro to, pokud by jste si chtěl prohlédnout větší oblast vzoru/gradientu.
     private static final List<Point> HODGMAN_CLIPPING_TRIANGLE_VERTICES = List.of(
             new Point(0, 0),
             new Point(1280, 0),
             new Point(1280, 1280),
             new Point(0, 1280)
-    );
+    );*/
 
     private static final List<Point> COHEN_CLIPPING_POLYGON_VERTICES = List.of(
             new Point(250, 200),
@@ -107,6 +107,7 @@ public class Controller {
         // Fillers
         this.scanlineFiller = new ScanlineFiller(canvas.getRaster());
         this.seedFiller = new StackSeedFiller(canvas.getRaster());
+        this.patternSeedFiller = new PatternSeedFiller(canvas.getRaster());
         this.patternFillers = new PatternFill[]{
                 null,
                 new HorizontalPatternFiller(canvas.getRaster()),
@@ -246,7 +247,11 @@ public class Controller {
         polygonRasterizer.rasterize(clippingTriangle, null);
 
         if (seedFillPoint != null) {
-            seedFiller.fill(seedFillPoint.getX(), seedFillPoint.getY(), canvas.getBackgroundColor(), FILL_COLOR);
+            if (patternFillMode > 1) {
+                patternSeedFiller.fill(seedFillPoint.getX(), seedFillPoint.getY(), canvas.getBackgroundColor(), FILL_COLOR);
+            } else {
+                seedFiller.fill(seedFillPoint.getX(), seedFillPoint.getY(), canvas.getBackgroundColor(), FILL_COLOR);
+            }
         }
         canvas.repaint();
     }
@@ -302,8 +307,13 @@ public class Controller {
             render();
             return;
         }
+        boolean filled;
+        if (patternFillMode > 1) {
+            filled = patternSeedFiller.fill(seed.getX(), seed.getY(), canvas.getBackgroundColor(), FILL_COLOR);
+        } else {
+            filled = seedFiller.fill(seed.getX(), seed.getY(), canvas.getBackgroundColor(), FILL_COLOR);
+        }
 
-        boolean filled = seedFiller.fill(seed.getX(), seed.getY(), canvas.getBackgroundColor(), FILL_COLOR);
         if (filled) {
             seedFillPoint = seed;
             render();
