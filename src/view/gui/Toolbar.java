@@ -16,6 +16,7 @@ public final class Toolbar extends JPanel {
     private final Button clearButton;
     private final Button seedFillButton;
     private final Button clippingButton;
+    private final Button patternFillButton;
 
     private static final Color DIVIDER = new Color(0x3A3E43);
     private static final Color BACKGROUND = new Color(0x25282C);
@@ -37,6 +38,9 @@ public final class Toolbar extends JPanel {
 
         clippingButton = new Button("Aktuální režim: Sutherland Hodgman", false);
         fillControls.add(clippingButton);
+
+        patternFillButton = new Button("Režim výplně: Plná barva", false);
+        fillControls.add(patternFillButton);
 
         add(fillControls, BorderLayout.WEST);
 
@@ -66,6 +70,11 @@ public final class Toolbar extends JPanel {
         clippingButton.setText("Aktuální režim: " + finalText[clippingMode-1]);
     }
 
+    public void setPatternFillMode(int patternFillMode) {
+        String[] finalText = {"Plná barva", "Horizontální čáry", "Vertikální čáry"};
+        patternFillButton.setText("Režim výplně: " + finalText[patternFillMode-1]);
+    }
+
     public void addClearListener(ActionListener listener) {
         clearButton.addActionListener(listener);
     }
@@ -76,6 +85,10 @@ public final class Toolbar extends JPanel {
 
     public void addClippingListener(ActionListener listener) {
         clippingButton.addActionListener(listener);
+    }
+
+    public void addPatternFillListener(ActionListener listener) {
+        patternFillButton.addActionListener(listener);
     }
 
 }

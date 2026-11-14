@@ -1,11 +1,25 @@
 package controller;
 /*
-        .___  ___.   ______   .__   __.  _______ ____    ____    ____    __    ____  __   ________       ___      .______       _______       _______      ___      .__   __.   _______
-        |   \/   |  /  __  \  |  \ |  | |   ____|\   \  /   /    \   \  /  \  /   / |  | |       /      /   \     |   _  \     |       \     /  _____|    /   \     |  \ |  |  /  _____|
-        |  \  /  | |  |  |  | |   \|  | |  |__    \   \/   /      \   \/    \/   /  |  | `---/  /      /  ^  \    |  |_)  |    |  .--.  |   |  |  __     /  ^  \    |   \|  | |  |  __
-        |  |\/|  | |  |  |  | |  . `  | |   __|    \_    _/        \            /   |  |    /  /      /  /_\  \   |      /     |  |  |  |   |  | |_ |   /  /_\  \   |  . `  | |  | |_ |
-        |  |  |  | |  `--'  | |  |\   | |  |____     |  |           \    /\    /    |  |   /  /----. /  _____  \  |  |\  \----.|  '--'  |   |  |__| |  /  _____  \  |  |\   | |  |__| |
-        |__|  |__|  \______/  |__| \__| |_______|    |__|            \__/  \__/     |__|  /________|/__/     \__\ | _| `._____||_______/     \______| /__/     \__\ |__| \__|  \______|
+           .___  ___.   ______   .__   __.  _______ ____    ____
+           |   \/   |  /  __  \  |  \ |  | |   ____|\   \  /   /
+           |  \  /  | |  |  |  | |   \|  | |  |__    \   \/   /
+           |  |\/|  | |  |  |  | |  . `  | |   __|    \_    _/
+           |  |  |  | |  `--'  | |  |\   | |  |____     |  |
+           |__|  |__|  \______/  |__| \__| |_______|    |__|
+
+ ____    __    ____  __   ________       ___      .______       _______
+ \   \  /  \  /   / |  | |       /      /   \     |   _  \     |       \
+  \   \/    \/   /  |  | `---/  /      /  ^  \    |  |_)  |    |  .--.  |
+   \            /   |  |    /  /      /  /_\  \   |      /     |  |  |  |
+    \    /\    /    |  |   /  /----. /  _____  \  |  |\  \----.|  '--'  |
+     \__/  \__/     |__|  /________|/__/     \__\ | _| `._____||_______/
+
+                 _______      ___      .__   __.   _______
+                /  _____|    /   \     |  \ |  |  /  _____|
+               |  |  __     /  ^  \    |   \|  | |  |  __
+               |  | |_ |   /  /_\  \   |  . `  | |  | |_ |
+               |  |__| |  /  _____  \  |  |\   | |  |__| |
+                \______| /__/     \__\ |__| \__|  \______|
 */
 
 import graphics.clipping.CohenSutherlandClipper;
@@ -47,7 +61,9 @@ public class Controller {
     private final PolygonRasterizer polygonRasterizer;
 
     private Point seedFillPoint;
-    private int seedFillMode = 1; // 1 = No point; 2 = Choosing point; 3 = Point chosen
+    private int seedFillMode = 1;    // 1 = No point; 2 = Choosing point; 3 = Point chosen
+    private int patternFillMode = 1; // 1 = Plná barva; 2 = Horizontální čáry
+    private final PatternFill[] patternFillers;
     private final SeedFiller seedFiller;
     private final ScanlineFiller scanlineFiller;
 
@@ -57,6 +73,7 @@ public class Controller {
     private static final int CLIPPED_COLOR = new Color(0xA4F2DF).getRGB();
     private static final int CLIPPING_TRIANGLE_COLOR = new Color(0xE6B85C).getRGB();
     private static final int FILL_COLOR = new Color(0x58BFA9).getRGB();
+    private static final int PATTERNFILL_COLOR = new Color(0x0008f5).getRGB();
 
     // Tento tvar se mi zjevil ve snu (Ne, ale bylo by to vtipné)
     private static final List<Point> HODGMAN_CLIPPING_TRIANGLE_VERTICES = List.of(
@@ -83,6 +100,11 @@ public class Controller {
         // Fillers
         this.scanlineFiller = new ScanlineFiller(canvas.getRaster());
         this.seedFiller = new StackSeedFiller(canvas.getRaster());
+        this.patternFillers = new PatternFill[]{
+                null,
+                new HorizontalPatternFiller(canvas.getRaster()),
+                new VerticalPatternFiller(canvas.getRaster())
+        };
         // Rasterizers
         this.polygonRasterizer = new PolygonOutlineRasterizer(new XiaolinWuLineRasterizer(canvas.getRaster()));
         // Clipping
@@ -95,6 +117,8 @@ public class Controller {
         toolbar.addClearListener(_ -> clearDrawing());
         toolbar.addSeedFillListener(_ -> cycleSeedFillMode());
         toolbar.addClippingListener(_ -> cycleClippingMode());
+        toolbar.addPatternFillListener(_ -> cyclePatternFillMode());
+
         canvas.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(getKeyStroke(VK_C, 0), "clearCanvas");
         canvas.getActionMap().put("clearCanvas", new AbstractAction() {
             @Override
@@ -166,7 +190,11 @@ public class Controller {
                 clipped = null;
             }
             if (clipped != null) {
-                scanlineFiller.fill(clipped, FILL_COLOR);
+                if (patternFillMode > 1) {
+                    patternFillers[patternFillMode-1].fill(clipped, FILL_COLOR, canvas.getBackgroundColor());
+                } else {
+                    scanlineFiller.fill(clipped, FILL_COLOR);
+                }
             }
 
             polygonRasterizer.rasterize(withColor(polygon, ORIGINAL_COLOR), previewLine);
@@ -214,7 +242,6 @@ public class Controller {
         render();
     }
 
-
     private void cycleClippingMode() {
         clippingMode += 1;
         if (clippingMode == 3) clippingMode = 1;
@@ -236,6 +263,16 @@ public class Controller {
             seedFillPoint = null;
         }
         toolbar.setSeedFillMode(seedFillMode);
+        render();
+    }
+
+    // Off-topic když toto programuju:
+    // Naprostý banger btw https://www.youtube.com/watch?v=cfb4LCHvqmg
+    private void cyclePatternFillMode() {
+        patternFillMode += 1;
+        if (patternFillMode == patternFillers.length+1) patternFillMode = 1;
+
+        toolbar.setPatternFillMode(patternFillMode);
         render();
     }
 
