@@ -76,6 +76,7 @@ public class Controller {
     private static final int PATTERNFILL_COLOR = new Color(0x0008f5).getRGB();
 
     // Tento tvar se mi zjevil ve snu (Ne, ale bylo by to vtipné)
+    /*
     private static final List<Point> HODGMAN_CLIPPING_TRIANGLE_VERTICES = List.of(
             new Point(250, 200),
             new Point(375, 100),
@@ -84,6 +85,12 @@ public class Controller {
             new Point(500, 400),
             new Point(375, 500),
             new Point(250, 400)
+    );*/
+    private static final List<Point> HODGMAN_CLIPPING_TRIANGLE_VERTICES = List.of(
+            new Point(0, 0),
+            new Point(1280, 0),
+            new Point(1280, 1280),
+            new Point(0, 1280)
     );
 
     private static final List<Point> COHEN_CLIPPING_POLYGON_VERTICES = List.of(
@@ -103,7 +110,18 @@ public class Controller {
         this.patternFillers = new PatternFill[]{
                 null,
                 new HorizontalPatternFiller(canvas.getRaster()),
-                new VerticalPatternFiller(canvas.getRaster())
+                new VerticalPatternFiller(canvas.getRaster()),
+                //new GradientFiller(canvas.getRaster()),
+                new CreeperFaceFiller(canvas.getRaster()),
+                new ModernArtFiller(canvas.getRaster()),
+                new TVNoiseFiller(canvas.getRaster()),
+                new TriangularChessFiller(canvas.getRaster()),
+                new JupiterDreamFiller(canvas.getRaster()),
+                new AbyssStaresBackFiller(canvas.getRaster()),
+                new AlgorithmSolverFiller(canvas.getRaster()),
+                new CheeseOnPlutoFiller(canvas.getRaster()),
+                new HatefulGemFiller(canvas.getRaster()),
+                new NightOnVenusFiller(canvas.getRaster())
         };
         // Rasterizers
         this.polygonRasterizer = new PolygonOutlineRasterizer(new XiaolinWuLineRasterizer(canvas.getRaster()));

@@ -71,7 +71,10 @@ public final class Toolbar extends JPanel {
     }
 
     public void setPatternFillMode(int patternFillMode) {
-        String[] finalText = {"Plná barva", "Horizontální čáry", "Vertikální čáry"};
+        String[] finalText = {"Plná barva", "Horizontální čáry", "Vertikální čáry", "Vzor", "70s Televizor",
+                "Šum Televize", "Trojuhelníková Šachovnice", "Jupiterův sen", "Nicota se dívá zpátky", "Řešitel algoritmů",
+                "Sýr na Plutu", "Klenot nenávisti", "Noc na Venuši"
+        };
         patternFillButton.setText("Režim výplně: " + finalText[patternFillMode-1]);
     }
 
